@@ -1,0 +1,12 @@
+{
+  "domain": "presence_replay",
+  "name": "Presence Replay",
+  "codeowners": ["@yourhandle"],
+  "config_flow": true,
+  "documentation": "https://github.com/yourhandle/ha-presence-replay",
+  "integration_type": "helper",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/yourhandle/ha-presence-replay/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

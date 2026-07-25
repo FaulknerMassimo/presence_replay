@@ -1,0 +1,110 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Presence Replay",
+        "description": "Pick a name and the lights whose brightness should be recorded and replayed.",
+        "data": {
+          "name": "Name",
+          "lights": "Lights"
+        }
+      }
+    },
+    "error": {
+      "no_lights_selected": "Select at least one light."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Presence Replay options",
+        "data": {
+          "lights": "Lights",
+          "delta_days": "Replay day offset",
+          "jitter_seconds": "Jitter (± seconds)",
+          "transition": "Transition (seconds)",
+          "retention_days": "Log retention (days)",
+          "debounce_seconds": "Debounce window (seconds)",
+          "min_delta": "Minimum brightness delta",
+          "use_snapshot": "Replay the frozen snapshot",
+          "restore_on_stop": "Restore lights when stopped"
+        },
+        "data_description": {
+          "delta_days": "How many days back to replay, e.g. 7 for a week ago.",
+          "jitter_seconds": "Randomise each event by up to this many seconds. 0 disables jitter.",
+          "transition": "Fade duration passed to light.turn_on / light.turn_off. 0 omits the parameter.",
+          "retention_days": "Events older than this are pruned from the log.",
+          "debounce_seconds": "Quiet period after a state change before it is recorded.",
+          "min_delta": "Ignore brightness changes smaller than this (0-255).",
+          "use_snapshot": "Replay the frozen snapshot instead of the rolling log. Prevents feedback loops on long trips.",
+          "restore_on_stop": "Return lights to their pre-simulation state when the switch turns off."
+        }
+      }
+    },
+    "error": {
+      "no_lights_selected": "Select at least one light."
+    }
+  },
+  "entity": {
+    "switch": {
+      "replay": {
+        "name": "Replay"
+      }
+    },
+    "sensor": {
+      "events_recorded": {
+        "name": "Events recorded"
+      },
+      "history_span": {
+        "name": "History span"
+      },
+      "next_action": {
+        "name": "Next action"
+      },
+      "replaying_date": {
+        "name": "Replaying date"
+      }
+    },
+    "button": {
+      "take_snapshot": {
+        "name": "Take snapshot"
+      }
+    }
+  },
+  "services": {
+    "snapshot": {
+      "name": "Take snapshot",
+      "description": "Freeze the last delta_days of recorded events into the snapshot slot.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Presence Replay entry",
+          "description": "Which Presence Replay config entry to snapshot."
+        }
+      }
+    },
+    "clear_log": {
+      "name": "Clear log",
+      "description": "Permanently delete all recorded events for a Presence Replay entry.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Presence Replay entry",
+          "description": "Which Presence Replay config entry to clear."
+        },
+        "confirm": {
+          "name": "Confirm",
+          "description": "Type CLEAR to confirm you want to permanently delete the log."
+        }
+      }
+    },
+    "export_log": {
+      "name": "Export log",
+      "description": "Return the recorded event log as response data, for inspection from Developer Tools.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Presence Replay entry",
+          "description": "Which Presence Replay config entry to export."
+        }
+      }
+    }
+  }
+}

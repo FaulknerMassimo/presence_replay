@@ -1,0 +1,28 @@
+snapshot:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: presence_replay
+
+clear_log:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: presence_replay
+    confirm:
+      required: true
+      example: "CLEAR"
+      selector:
+        text:
+
+export_log:
+  fields:
+    config_entry_id:
+      required: true
+      selector:
+        config_entry:
+          integration: presence_replay
