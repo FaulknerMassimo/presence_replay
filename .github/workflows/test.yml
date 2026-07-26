@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.13"]
+        python-version: ["3.14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,11 +18,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Floor of 0.13.348: earlier releases pin freezegun==1.5.2, which
-          # doesn't patch the asyncio loop's monotonic clock that
-          # async_call_later schedules against (loop.call_at) -- debounce
-          # timers never fire under freezegun there, failing tests that are
-          # correct against >=0.13.348 (freezegun==1.5.5).
+          # Both homeassistant and pytest-homeassistant-custom-component
+          # currently require Python >=3.14 -- on 3.13 pip silently
+          # backtracks to the last compatible release (0.13.316), which
+          # pins freezegun==1.5.2. That version doesn't patch the asyncio
+          # loop's monotonic clock that async_call_later schedules against
+          # (loop.call_at), so debounce timers never fire under freezegun
+          # and tests that are correct against >=0.13.348 (freezegun==1.5.5)
+          # fail deterministically. Keep the floor explicit either way.
           pip install "pytest-homeassistant-custom-component>=0.13.348" ruff
       - name: Versions
         run: pip show pytest-homeassistant-custom-component homeassistant freezegun | grep -E "^(Name|Version)"
