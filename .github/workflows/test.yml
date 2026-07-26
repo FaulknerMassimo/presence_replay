@@ -18,7 +18,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest-homeassistant-custom-component ruff
+          # Floor of 0.13.348: earlier releases pin freezegun==1.5.2, which
+          # doesn't patch the asyncio loop's monotonic clock that
+          # async_call_later schedules against (loop.call_at) -- debounce
+          # timers never fire under freezegun there, failing tests that are
+          # correct against >=0.13.348 (freezegun==1.5.5).
+          pip install "pytest-homeassistant-custom-component>=0.13.348" ruff
+      - name: Versions
+        run: pip show pytest-homeassistant-custom-component homeassistant freezegun | grep -E "^(Name|Version)"
       - name: Ruff
         run: ruff check custom_components tests
       - name: Pytest

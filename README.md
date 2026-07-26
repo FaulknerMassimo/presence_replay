@@ -123,7 +123,7 @@ act on.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install pytest-homeassistant-custom-component ruff
+pip install "pytest-homeassistant-custom-component>=0.13.348" ruff
 ruff check custom_components tests
 pytest tests
 ```
