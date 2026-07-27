@@ -11,7 +11,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from . import PresenceReplayConfigEntry
+from . import PresenceReplayConfigEntry, async_take_snapshot
 from .const import DOMAIN
 
 
@@ -26,9 +26,13 @@ async def async_setup_entry(
 class PresenceReplaySwitch(SwitchEntity, RestoreEntity):
     """Starts and stops the replay scheduler.
 
-    `turn_on` starts the scheduler; `turn_off` stops it and, when
-    `restore_on_stop` is set, reapplies the light states captured at start.
-    On restart, a restored "on" state resumes the simulation automatically.
+    `turn_on` freezes the current `delta_days` window into the snapshot slot
+    -- so a trip longer than `delta_days` loops that frozen reference instead
+    of feeding the simulation its own output -- then starts the scheduler.
+    `turn_off` stops it and, when `restore_on_stop` is set, reapplies the
+    light states captured at start. On restart, a restored "on" state resumes
+    the simulation automatically without re-snapshotting, since a mid-trip
+    restart would otherwise freeze an already-contaminated window.
     """
 
     _attr_has_entity_name = True
@@ -51,6 +55,7 @@ class PresenceReplaySwitch(SwitchEntity, RestoreEntity):
             await self._async_start()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
+        await async_take_snapshot(self.hass, self._entry)
         await self._async_start()
         self.async_write_ha_state()
 

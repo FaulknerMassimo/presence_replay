@@ -28,7 +28,6 @@ async def test_setup_and_unload(hass: HomeAssistant) -> None:
     assert entry.runtime_data is not None
     assert hass.states.get("switch.test_replay") is not None
     assert hass.states.get("sensor.test_events_recorded") is not None
-    assert hass.states.get("button.test_take_snapshot") is not None
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()

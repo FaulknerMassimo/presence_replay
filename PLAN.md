@@ -92,9 +92,8 @@ custom_components/presence_replay/
 ├── store.py              # Store wrapper: load, append, prune, snapshot, export
 ├── recorder.py           # state-change listeners + debounce (name it recorder.py, not logger.py)
 ├── scheduler.py          # plan building + point-in-time replay engine
-├── switch.py             # the on/off control
+├── switch.py             # the on/off control -- also snapshots on turn_on
 ├── sensor.py             # diagnostic sensors
-├── button.py             # "Take snapshot" button
 ├── services.yaml
 ├── strings.json
 └── translations/en.json
@@ -174,8 +173,9 @@ scheduler, `turn_off` stops it and restores prior light states when
 - `next_action` — `device_class: timestamp`, the next scheduled point in time; `None` when idle
 - `replaying_date` — which historical date is currently being played back
 
-**`button`** — "Take snapshot", equivalent to calling the snapshot service with
-the configured `delta_days`.
+No separate snapshot control -- `switch.turn_on` calls the snapshot service
+itself (with the configured `delta_days`) before starting the scheduler, so
+arming the replay always freezes a fresh reference window.
 
 ## Services
 
@@ -223,6 +223,14 @@ Handle each of these explicitly; several have bitten the existing integrations.
   the switch was on, log a warning once per session pointing at the snapshot
   option. (Tag events written during replay with a fourth optional field, or
   track replay windows separately — implementer's choice, but the warning must fire.)
+  `use_snapshot` defaults to `true` and is (re-)captured on every `turn_on`,
+  so this is opt-out rather than something the user has to remember to arm.
+- **Snapshot running dry.** A snapshot only contains `delta_days` calendar
+  dates; once a trip runs longer than that, naively continuing to advance
+  `target_date` walks past the dates the snapshot has events for and the
+  house silently freezes (no drift, but no more variation either). The
+  target-date calculation must instead cycle back through the snapshot's own
+  date range, anchored to when it was taken, once real time runs past it.
 - **Empty or too-short log.** If the target date has no events, log a clear
   warning naming the date, and leave lights untouched rather than turning
   everything off.
@@ -257,7 +265,7 @@ Handle each of these explicitly; several have bitten the existing integrations.
 2. **Capture** — store.py + recorder.py, listeners with debounce, delayed save, nightly prune. Verify events accumulate by watching the `.storage` file.
 3. **Diagnostics** — sensor platform. Confirms capture is working before any replay code exists.
 4. **Replay** — scheduler.py + switch platform. Test with a 1-day delta so you don't wait a week.
-5. **Snapshot** — snapshot storage slot, button entity, `use_snapshot` option, feedback-loop warning.
+5. **Snapshot** — snapshot storage slot, auto-snapshot on switch `turn_on`, `use_snapshot` option (default on), cycling target-date so a frozen window loops indefinitely, feedback-loop warning for the opt-out rolling path.
 6. **Options and polish** — full options flow, `restore_on_stop`, services.yaml, translations.
 7. **Ship** — tests, hassfest + HACS validation GitHub Actions, ruff config matching core, README, HACS repo metadata.
 

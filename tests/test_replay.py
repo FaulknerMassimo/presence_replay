@@ -21,7 +21,7 @@ from custom_components.presence_replay.const import (
     DEFAULT_OPTIONS,
     DOMAIN,
 )
-from custom_components.presence_replay.models import LightEvent
+from custom_components.presence_replay.models import LightEvent, SnapshotData
 
 
 def _set_tz() -> None:
@@ -143,6 +143,60 @@ async def test_feedback_loop_warns_once(
         await hass.async_block_till_done()
 
     assert any("previous replay" in message for message in caplog.messages)
+
+
+async def test_snapshot_cycles_instead_of_freezing_past_delta_days(
+    hass: HomeAssistant, freezer
+) -> None:
+    """Once real time runs past the days a snapshot actually covers, the
+    replay must cycle back through those same dates, not silently freeze."""
+    _set_tz()
+    hass.states.async_set("light.kitchen", "off")
+
+    now = dt_util.start_of_local_day(dt_util.now())
+    freezer.move_to(now)
+
+    entry = await _make_entry(hass, **{CONF_DELTA_DAYS: 2, CONF_USE_SNAPSHOT: True})
+
+    day0 = (now - timedelta(days=2)).date()
+    day1 = (now - timedelta(days=1)).date()
+    entry.runtime_data.store.snapshot = SnapshotData(
+        created=now.timestamp(),
+        days=2,
+        events=[
+            LightEvent(
+                ts=dt_util.start_of_local_day(day0).timestamp() + 3600,
+                entity_id="light.kitchen",
+                level=50,
+            ),
+            LightEvent(
+                ts=dt_util.start_of_local_day(day1).timestamp() + 3600,
+                entity_id="light.kitchen",
+                level=150,
+            ),
+        ],
+    )
+
+    scheduler = entry.runtime_data.scheduler
+    _, patcher = _patch_light_calls()
+    with patcher:
+        await scheduler._rebuild_and_apply(dt_util.now())
+        assert scheduler.status.replaying_date == day0
+
+        freezer.move_to(now + timedelta(days=1))
+        await scheduler._rebuild_and_apply(dt_util.now())
+        assert scheduler.status.replaying_date == day1
+
+        # Old rolling formula would target `now`'s own date here -- inside
+        # the trip, past anything the snapshot contains. It must wrap back
+        # to day0 instead of finding no events and freezing the house.
+        freezer.move_to(now + timedelta(days=2))
+        await scheduler._rebuild_and_apply(dt_util.now())
+        assert scheduler.status.replaying_date == day0
+
+        freezer.move_to(now + timedelta(days=5))
+        await scheduler._rebuild_and_apply(dt_util.now())
+        assert scheduler.status.replaying_date == day1
 
 
 async def test_unload_cancels_all_listeners_and_timers(hass: HomeAssistant, freezer) -> None:

@@ -173,6 +173,29 @@ class ReplayScheduler:
             return self._store.snapshot.events
         return self._store.events
 
+    def _target_date(self, now: datetime, use_snapshot: bool, delta_days: int) -> date:
+        """Which historical date to replay tonight.
+
+        Without a snapshot, this is a rolling `now - delta_days` window that
+        keeps sliding forward -- fine until it slides past the day the
+        replay itself started running, at which point it starts sourcing
+        its own output (see `_check_feedback_loop`).
+
+        With a snapshot in use, the frozen window can't supply new dates
+        forever, so once real time runs past it we cycle back through the
+        same `days` calendar dates the snapshot actually contains, anchored
+        to when it was taken, instead of walking off the end into dates it
+        has no events for (which would silently freeze the house instead of
+        looping it).
+        """
+        snapshot = self._store.snapshot
+        if use_snapshot and snapshot is not None and snapshot.created is not None and snapshot.days > 0:
+            created_date = dt_util.as_local(dt_util.utc_from_timestamp(snapshot.created)).date()
+            window_start = created_date - timedelta(days=snapshot.days)
+            nights_elapsed = (now.date() - created_date).days
+            return window_start + timedelta(days=nights_elapsed % snapshot.days)
+        return (now - timedelta(days=delta_days)).date()
+
     def _check_feedback_loop(
         self, events: list[LightEvent], next_midnight_ts: float, use_snapshot: bool
     ) -> None:
@@ -194,7 +217,7 @@ class ReplayScheduler:
         delta_days = options.get(CONF_DELTA_DAYS, DEFAULT_DELTA_DAYS)
         use_snapshot = options.get(CONF_USE_SNAPSHOT, DEFAULT_USE_SNAPSHOT)
         jitter_seconds = options.get(CONF_JITTER_SECONDS, DEFAULT_JITTER_SECONDS)
-        target_date = (now - timedelta(days=delta_days)).date()
+        target_date = self._target_date(now, use_snapshot, delta_days)
         next_midnight_ts = dt_util.start_of_local_day(
             target_date + timedelta(days=1)
         ).timestamp()

@@ -35,7 +35,7 @@
           "retention_days": "Events older than this are pruned from the log.",
           "debounce_seconds": "Quiet period after a state change before it is recorded.",
           "min_delta": "Ignore brightness changes smaller than this (0-255).",
-          "use_snapshot": "Replay the frozen snapshot instead of the rolling log. Prevents feedback loops on long trips.",
+          "use_snapshot": "Replay the frozen snapshot (captured automatically each time the switch turns on) instead of the rolling log. Prevents feedback loops on long trips.",
           "restore_on_stop": "Return lights to their pre-simulation state when the switch turns off."
         }
       }
@@ -62,11 +62,6 @@
       },
       "replaying_date": {
         "name": "Replaying date"
-      }
-    },
-    "button": {
-      "take_snapshot": {
-        "name": "Take snapshot"
       }
     }
   },

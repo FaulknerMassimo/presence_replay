@@ -55,10 +55,10 @@ upstairs and downstairs).
 
 Each entry creates one device with:
 
-- A **switch** — turn it on to start the replay, off to stop it
+- A **switch** — turn it on to start the replay (freezing a snapshot of the
+  last `delta_days` first), off to stop it
 - Diagnostic **sensors** — events recorded, history span, next scheduled
   action, and which historical date is currently being replayed
-- A **button** — take a manual snapshot
 
 ## Options
 
@@ -73,25 +73,28 @@ Reconfigure via the entry's **Configure** button at any time.
 | `retention_days` | 21 | Events older than this are pruned from the log |
 | `debounce_seconds` | 5 | Quiet period after a state change before it's recorded, to collapse fades into one event |
 | `min_delta` | 3 | Ignore brightness changes smaller than this (0-255) |
-| `use_snapshot` | false | Replay the frozen snapshot instead of the rolling log |
+| `use_snapshot` | true | Replay the frozen snapshot instead of the rolling log |
 | `restore_on_stop` | true | Return lights to their pre-simulation state when the switch turns off |
 
 ## Snapshots and long trips
 
-By default, Presence Replay replays a rolling window of the last
-`delta_days`. If a trip is longer than `delta_days`, the simulation starts
-replaying events that it itself generated during the trip, and jitter drift
-compounds day over day.
+Turning the switch on freezes the last `delta_days` of recorded history into
+a snapshot slot, and `use_snapshot` (on by default) replays that frozen
+window instead of the live rolling log. Once real time runs past the days
+the snapshot actually covers, it cycles back through the same `delta_days`
+dates rather than sliding forward into dates the switch itself generated —
+so a trip of any length loops one real reference period indefinitely instead
+of replaying its own jittered output back into itself.
 
-To avoid this, press **Take snapshot** (or call `presence_replay.snapshot`)
-before you leave, then turn on `use_snapshot` in the options. This freezes
-the last `delta_days` of history into a separate slot that keeps being
-replayed unchanged, regardless of how long the switch stays on.
+Turning `use_snapshot` off reverts to the old rolling-window behavior: each
+night looks back `delta_days` from today, which drifts once a trip runs
+longer than `delta_days` (a warning is logged once when this happens).
 
 ## Services
 
 - `presence_replay.snapshot` — freeze the last `delta_days` of recorded
-  events into the snapshot slot
+  events into the snapshot slot. The switch already does this automatically
+  on every `turn_on`; this is for forcing a fresh snapshot without a restart
 - `presence_replay.clear_log` — permanently delete all recorded events for an
   entry (requires typing `CLEAR` in the confirm field)
 - `presence_replay.export_log` — returns the recorded event log as response

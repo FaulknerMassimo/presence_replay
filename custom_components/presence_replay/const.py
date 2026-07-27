@@ -8,7 +8,7 @@ from homeassistant.const import Platform
 
 DOMAIN: Final = "presence_replay"
 
-PLATFORMS: Final = [Platform.SWITCH, Platform.SENSOR, Platform.BUTTON]
+PLATFORMS: Final = [Platform.SWITCH, Platform.SENSOR]
 
 # Config / options keys
 CONF_LIGHTS: Final = "lights"
@@ -28,7 +28,7 @@ DEFAULT_TRANSITION: Final = 2
 DEFAULT_RETENTION_DAYS: Final = 21
 DEFAULT_DEBOUNCE_SECONDS: Final = 5
 DEFAULT_MIN_DELTA: Final = 3
-DEFAULT_USE_SNAPSHOT: Final = False
+DEFAULT_USE_SNAPSHOT: Final = True
 DEFAULT_RESTORE_ON_STOP: Final = True
 
 DEFAULT_OPTIONS: Final = {
