@@ -94,12 +94,35 @@ custom_components/presence_replay/
 ├── scheduler.py          # plan building + point-in-time replay engine
 ├── switch.py             # the on/off control -- also snapshots on turn_on
 ├── sensor.py             # diagnostic sensors
+├── websocket_api.py      # presence_replay/history command, feeds the card below
+├── frontend.py           # serves www/ and auto-registers the card as a resource
+├── www/
+│   └── presence-replay-history-card.js  # bundled Lovelace card, no build step
 ├── services.yaml
 ├── strings.json
 └── translations/en.json
 hacs.json
 README.md
 ```
+
+## Bundled history card
+
+A vanilla-JS Lovelace card (`www/presence-replay-history-card.js`, no
+bundler/lit dependency) graphs the event log as a step chart per light.
+`frontend.py` serves it via `hass.http.async_register_static_paths` and
+calls `add_extra_js_url` so it's loaded for every dashboard without a
+manual resource entry. `websocket_api.py` registers an admin-gated
+`presence_replay/history` command that returns the same shape as
+`export_log` plus the snapshot slot; the card calls it directly rather than
+piggybacking on the export service.
+
+This pulls in `http`, `frontend`, and `websocket_api` as manifest
+dependencies -- a departure from "no requirements" above, but not from the
+"independent of the recorder/`history`" non-goal: those three components
+are the web UI itself and are already running on any real install. It does
+mean tests need `home-assistant-frontend` installed (see CI/README dev
+setup) since `frontend`'s `async_setup` imports the compiled `hass_frontend`
+package.
 
 ## Data model
 

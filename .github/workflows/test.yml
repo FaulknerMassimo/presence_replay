@@ -26,7 +26,12 @@ jobs:
           # (loop.call_at), so debounce timers never fire under freezegun
           # and tests that are correct against >=0.13.348 (freezegun==1.5.5)
           # fail deterministically. Keep the floor explicit either way.
-          pip install "pytest-homeassistant-custom-component>=0.13.348" ruff
+          #
+          # home-assistant-frontend is the real static-asset package: the
+          # integration depends on `frontend`/`http`/`websocket_api` to
+          # serve its bundled Lovelace card, and frontend's async_setup
+          # imports hass_frontend, which only exists once this is installed.
+          pip install "pytest-homeassistant-custom-component>=0.13.348" ruff home-assistant-frontend
       - name: Versions
         run: pip show pytest-homeassistant-custom-component homeassistant freezegun | grep -E "^(Name|Version)"
       - name: Ruff

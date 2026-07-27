@@ -17,6 +17,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.service import async_register_admin_service
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -36,16 +37,25 @@ from .const import (
     SERVICE_EXPORT_LOG,
     SERVICE_SNAPSHOT,
 )
+from .frontend import async_register_frontend
 from .models import PresenceReplayRuntime
 from .recorder import LightCapture
 from .scheduler import ReplayScheduler
 from .store import PresenceReplayStore
+from .websocket_api import async_register_websocket_api
 
 _LOGGER = logging.getLogger(__name__)
 
 type PresenceReplayConfigEntry = ConfigEntry[PresenceReplayRuntime]
 
 _SERVICES_REGISTERED_KEY = f"{DOMAIN}_services_registered"
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Global, once-per-run setup: history websocket command + bundled card."""
+    async_register_websocket_api(hass)
+    await async_register_frontend(hass)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: PresenceReplayConfigEntry) -> bool:

@@ -60,6 +60,29 @@ Each entry creates one device with:
 - Diagnostic **sensors** — events recorded, history span, next scheduled
   action, and which historical date is currently being replayed
 
+## Viewing recorded history
+
+The integration ships a Lovelace card that graphs the recorded light-level
+log as a step chart, per light, with a live/snapshot toggle and hover
+tooltips. It's auto-registered as a frontend resource on startup, so there's
+nothing to add under Settings → Dashboards → Resources — just add the card:
+
+```yaml
+type: custom:presence-replay-history-card
+entity: sensor.upstairs_events_recorded   # any entity on the Presence Replay device
+days: 3                                    # live-log window in days, default 3
+title: Upstairs light history               # optional
+```
+
+`entity` can be any entity that belongs to the entry's device (a diagnostic
+sensor or the switch) — the card resolves it to the right config entry
+automatically. You can pass `config_entry_id` directly instead if you'd
+rather not depend on entity resolution.
+
+This card depends on the `frontend`, `http`, and `websocket_api` core
+components (declared in `manifest.json`), which are already running on any
+normal Home Assistant install.
+
 ## Options
 
 Reconfigure via the entry's **Configure** button at any time.
@@ -126,7 +149,7 @@ act on.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install "pytest-homeassistant-custom-component>=0.13.348" ruff
+pip install "pytest-homeassistant-custom-component>=0.13.348" ruff home-assistant-frontend
 ruff check custom_components tests
 pytest tests
 ```
