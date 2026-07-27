@@ -3,9 +3,8 @@
     "step": {
       "user": {
         "title": "Add Presence Replay",
-        "description": "Pick a name and the lights whose brightness should be recorded and replayed.",
+        "description": "Pick the lights whose brightness should be recorded and replayed.",
         "data": {
-          "name": "Name",
           "lights": "Lights"
         }
       }

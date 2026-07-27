@@ -14,7 +14,6 @@ from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
-    TextSelector,
 )
 
 from .const import (
@@ -23,7 +22,6 @@ from .const import (
     CONF_JITTER_SECONDS,
     CONF_LIGHTS,
     CONF_MIN_DELTA,
-    CONF_NAME,
     CONF_RESTORE_ON_STOP,
     CONF_RETENTION_DAYS,
     CONF_TRANSITION,
@@ -95,13 +93,13 @@ class PresenceReplayConfigFlow(ConfigFlow, domain=DOMAIN):
             if not lights:
                 errors["base"] = "no_lights_selected"
             else:
-                name = user_input[CONF_NAME]
                 options = {**DEFAULT_OPTIONS, CONF_LIGHTS: lights}
-                return self.async_create_entry(title=name, data={}, options=options)
+                return self.async_create_entry(
+                    title="Presence Replay", data={}, options=options
+                )
 
         schema = vol.Schema(
             {
-                vol.Required(CONF_NAME): TextSelector(),
                 vol.Required(CONF_LIGHTS): EntitySelector(
                     EntitySelectorConfig(domain="light", multiple=True)
                 ),

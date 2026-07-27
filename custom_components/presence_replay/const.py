@@ -11,7 +11,6 @@ DOMAIN: Final = "presence_replay"
 PLATFORMS: Final = [Platform.SWITCH, Platform.SENSOR, Platform.BUTTON]
 
 # Config / options keys
-CONF_NAME: Final = "name"
 CONF_LIGHTS: Final = "lights"
 CONF_DELTA_DAYS: Final = "delta_days"
 CONF_JITTER_SECONDS: Final = "jitter_seconds"

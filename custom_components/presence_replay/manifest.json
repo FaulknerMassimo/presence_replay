@@ -4,7 +4,6 @@
   "codeowners": ["@FaulknerMassimo"],
   "config_flow": true,
   "documentation": "https://github.com/FaulknerMassimo/presence_replay",
-  "integration_type": "helper",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/FaulknerMassimo/presence_replay/issues",
   "requirements": [],

@@ -27,10 +27,10 @@ async def test_user_flow_happy_path(hass: HomeAssistant) -> None:
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        {"name": "Downstairs", CONF_LIGHTS: ["light.kitchen"]},
+        {CONF_LIGHTS: ["light.kitchen"]},
     )
     assert result["type"] == "create_entry"
-    assert result["title"] == "Downstairs"
+    assert result["title"] == "Presence Replay"
     assert result["options"][CONF_LIGHTS] == ["light.kitchen"]
 
 
@@ -40,7 +40,7 @@ async def test_user_flow_requires_at_least_one_light(hass: HomeAssistant) -> Non
     )
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        {"name": "Downstairs", CONF_LIGHTS: []},
+        {CONF_LIGHTS: []},
     )
     assert result["type"] == "form"
     assert result["errors"] == {"base": "no_lights_selected"}
